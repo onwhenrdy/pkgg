@@ -14,7 +14,7 @@
   })
 }
 
-.install_pkgs <- function(pkgs, where, exit_on_error, ...) {
+.install_pkgs <- function(pkgs, where, exit_on_error, cleanup, ...) {
   inv_target <- if (where == "local") "container" else "local"
 
   refs <- purrr::keep(pkgs, \(x) x$install != inv_target) |>
@@ -31,6 +31,13 @@
     none = FALSE
   )
 
+  clean_pak <- swtich(cleanup,
+    container = where == "container",
+    local = where == "local",
+    both = TRUE,
+    none = FALSE
+  )
+
   tryCatch(pak::pkg_install(refs, upgrade = TRUE, ...),
     error = function(e) {
       if (exit_if_error) {
@@ -40,6 +47,10 @@
       cli::cli_abort("Installing packages failed", parent = e)
     }
   )
+
+  if (clean_pak) {
+    pak::pak_cleanup(force = TRUE)
+  }
 
   return(invisible())
 }
@@ -70,10 +81,13 @@
 pkg_manager <- function(
     ...,
     .exit_on_error = c("container", "local", "both", "none"),
+    .cleanup = c("container", "local", "both", "none"),
     .startup_msg = FALSE,
     .warnings = FALSE) {
-  pkgs <- list(...)
+  checkmate::assert_flag(.startup_msg)
+  checkmate::assert_flag(.warnings)
 
+  pkgs <- list(...)
   for (pkg in pkgs) {
     checkmate::assert(
       checkmate::check_class(pkg, "pkg"),
@@ -81,9 +95,8 @@ pkg_manager <- function(
     )
   }
 
-
   .exit_on_error <- rlang::arg_match(.exit_on_error)
-
+  .cleanup <- rlang::arg_match(.cleanup)
 
   res <- function(action = c(
                     "list",
@@ -101,6 +114,7 @@ pkg_manager <- function(
     action <- rlang::arg_match(action)
 
     exit_on_error <- .exit_on_error
+    cleanup <- .cleanup
 
     if (show_list) {
       .show_list(startup_msg, warnings, exit_on_error)
@@ -111,9 +125,9 @@ pkg_manager <- function(
     if (action == "load_pkgs") {
       .load_pkgs(packages, startup_msg, warnings, ...)
     } else if (action == "install_local") {
-      .install_pkgs(packages, "local", exit_on_error, ...)
+      .install_pkgs(packages, "local", exit_on_error, cleanup, ...)
     } else if (action == "install_container") {
-      .install_pkgs(packages, "container", exit_on_error, ...)
+      .install_pkgs(packages, "container", exit_on_error, cleanup, ...)
     } else {
       print(packages, table = TRUE)
     }

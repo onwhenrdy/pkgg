@@ -36,15 +36,3 @@ test_that("Packages are (not) loaded as defined", {
   expect_true(p1 %in% loadedNamespaces())
   expect_false(p2 %in% loadedNamespaces())
 })
-
-tryCatch(
-  cli::cli_abort(
-    c("BLA",
-      "AA",
-      "i" = "All arguments must be of class {.cls pkg} or {.cls pkgs}."
-    )
-  ),
-  error = function(e) {
-    cli::cli_abort("Test", parent = e)
-  }
-)

@@ -7,3 +7,20 @@
 <!-- badges: end -->
 
 GG for handling your R packages
+
+## Example
+
+```r
+library(pkgg)
+
+manager <- pkg_manager(
+  pkgs("PKNCA", "shiny", "shinyWidgets", "waiter", "bs4Dash", "DT"),
+  pkgs_local(
+    "Open-Systems-Pharmacology/OSPSuite.RUtils",
+    "Open-Systems-Pharmacology/TLF-Library",
+    "Open-Systems-Pharmacology/rSharp",
+    .load = FALSE
+  ),
+  pkg_local("ospsuite=Open-Systems-Pharmacology/OSPSuite-R")
+)
+```

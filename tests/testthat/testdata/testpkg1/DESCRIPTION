@@ -1,5 +1,5 @@
-Package: testpkg
-Title: Test package
+Package: testpkg1
+Title: Test package 1
 Version: 0.1.0
 Authors@R: 
     person("Dominik", "Selzer", , "dominik.selzer@uni-saarland.de", role = c("aut", "cre"),

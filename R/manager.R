@@ -1,3 +1,5 @@
+q <- NULL
+
 .load_pkgs <- function(pkgs, show_startup_msg, warnings, ...) {
   refs <- purrr::keep(pkgs, \(x) x$load) |>
     purrr::map(\(x) x$package)
@@ -31,14 +33,14 @@
     none = FALSE
   )
 
-  clean_pak <- swtich(cleanup,
+  clean_pak <- switch(cleanup,
     container = where == "container",
     local = where == "local",
     both = TRUE,
     none = FALSE
   )
 
-  tryCatch(pak::pkg_install(refs, upgrade = TRUE, ...),
+  tryCatch(pak::pkg_install(refs, ask = FALSE, ...),
     error = function(e) {
       if (exit_if_error) {
         q(status = 1)
@@ -121,7 +123,7 @@ pkg_manager <- function(
       return(invisible())
     }
 
-    packages <- do.call(c, pkgs)
+    packages <- do.call(as_pkgs, pkgs)
     if (action == "load_pkgs") {
       .load_pkgs(packages, startup_msg, warnings, ...)
     } else if (action == "install_local") {

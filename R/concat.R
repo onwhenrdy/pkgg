@@ -39,6 +39,16 @@ c.pkgs <- function(...) {
   .concat_pkgs(...)
 }
 
+#' @export
+as_pkgs <- function(...) {
+  args <- list(...)
+  if (length(args) == 1 && is(args[[1]], "pkg")) {
+    args[[1]] <- list(args[[1]])
+    class(args[[1]]) <- "pkgs"
+  }
+  do.call(.concat_pkgs, args)
+}
+
 #' @method [ pkgs
 #' @export
 `[.pkgs` <- function(x, i, ...) {

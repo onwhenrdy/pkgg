@@ -1,10 +1,11 @@
+# To allow mocking of of quit
 q <- NULL
 
-.load_pkgs <- function(pkgs, show_startup_msg, warnings, ...) {
+.load_pkgs <- function(pkgs, show_startup_msg, show_warnings, ...) {
   refs <- purrr::keep(pkgs, \(x) x$load) |>
     purrr::map(\(x) x$package)
 
-  warn_fn <- if (warnings) function(x) {} else suppressWarnings
+  warn_fn <- if (show_warnings) function(x) {} else suppressWarnings
   msg_fn <- if (show_startup_msg) function(x) {} else suppressPackageStartupMessages
   msg_fn_2 <- if (show_startup_msg) function(x) {} else suppressMessages
 

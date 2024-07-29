@@ -39,47 +39,55 @@ test_that("Packages are (not) loaded as defined", {
 
 
 test_that("local packages can be installed and not cleanup runs", {
-  withr::with_tempdir({
-    p1 <- "xtable"
-    p2 <- "car"
-    withr::defer(.unload(p1, p2))
+  tmp_dir <- tempdir()
+  tmp <- tempfile(pattern = "file", tmpdir = tmp_dir, fileext = "")
+  dir.create(tmp)
 
-    fn <- pkg_manager(
-      pkg_local(p1),
-      pkg_container(p2)
-    )
+  test_pkg_path <- file.path(test_path(), "testdata", "testpkg")
+  p1 <- paste0("testpkg=local::", test_pkg_path)
+  p2 <- "car"
+  withr::defer(.unload(p1, p2))
+  withr::defer(unlink(tmp, recursive = TRUE))
 
-    fn("install_local", lib = getwd()) |> capture.output()
-    expect_no_error(
-      library(p1, lib.loc = getwd(), character.only = TRUE) |>
-        suppressWarnings()
-    )
+  fn <- pkg_manager(
+    pkg_local(p1),
+    pkg_container(p2)
+  )
 
-    expect_error(library(p2, lib.loc = getwd(), character.only = TRUE))
-    expect_true(pak::cache_list() |> nrow() > 0)
-  })
+  fn("install_local", lib = tmp_dir) |> capture.output()
+  expect_no_error(
+    library("testpkg", lib.loc = tmp_dir, character.only = TRUE) |>
+      suppressWarnings()
+  )
+
+  expect_error(library(p2, lib.loc = tmp_dir, character.only = TRUE))
+  expect_true(pak::cache_list() |> nrow() > 0)
 })
 
 test_that("container packages can be installed and cleanup runs", {
-  withr::with_tempdir({
-    p1 <- "car"
-    p2 <- "xtable"
-    withr::defer(.unload(p1, p2))
+  tmp_dir <- tempdir()
+  tmp <- tempfile(pattern = "file", tmpdir = tmp_dir, fileext = "")
+  dir.create(tmp)
 
-    fn <- pkg_manager(
-      pkg_local(p1),
-      pkg_container(p2)
-    )
+  test_pkg_path <- file.path(test_path(), "testdata", "testpkg")
+  p1 <- paste0("testpkg=local::", test_pkg_path)
+  p2 <- "car"
+  withr::defer(.unload(p1, p2))
+  withr::defer(unlink(tmp, recursive = TRUE))
 
-    fn("install_container", lib = getwd()) |> capture.output()
-    expect_no_error(
-      library(p2, lib.loc = getwd(), character.only = TRUE) |>
-        suppressWarnings()
-    )
+  fn <- pkg_manager(
+    pkg_local(p2),
+    pkg_container(p1)
+  )
 
-    expect_error(library(p1, lib.loc = getwd(), character.only = TRUE))
-    expect_true(pak::cache_list() |> nrow() == 0)
-  })
+  fn("install_container", lib = tmp_dir) |> capture.output()
+  expect_no_error(
+    library("testpkg", lib.loc = tmp_dir, character.only = TRUE) |>
+      suppressWarnings()
+  )
+
+  expect_error(library(p2, lib.loc = tmp_dir, character.only = TRUE))
+  expect_true(pak::cache_list() |> nrow() == 0)
 })
 
 test_that("Install fail will re-throw", {

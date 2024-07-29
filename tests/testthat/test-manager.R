@@ -84,7 +84,7 @@ test_that("container packages can be installed and cleanup runs", {
 
 test_that("Install fail will re-throw", {
   withr::with_tempdir({
-    fn <- pkg_manager(pkg_local("./nopkg.tag.gz", "nopkg"))
+    fn <- pkg_manager(pkg_local("nopkg=./nopkg.tag.gz"))
     expect_error(fn("install_local", lib = getwd()) |> capture.output())
   })
 })
@@ -95,7 +95,7 @@ test_that("Install fail will re-throw", {
       q = function(...) stop("mocked error")
     )
 
-    fn <- pkg_manager(pkg_container("./nopkg.tag.gz", "nopkg"))
+    fn <- pkg_manager(pkg_container("nopkg=./nopkg.tag.gz"))
     expect_error(fn("install_container", lib = getwd()) |> capture.output(), "mocked error")
   })
 })

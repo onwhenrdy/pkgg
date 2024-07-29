@@ -81,3 +81,21 @@ test_that("container packages can be installed and cleanup runs", {
     expect_true(pak::cache_list() |> nrow() == 0)
   })
 })
+
+test_that("Install fail will re-throw", {
+  withr::with_tempdir({
+    fn <- pkg_manager(pkg_local("./nopkg.tag.gz", "nopkg"))
+    expect_error(fn("install_local", lib = getwd()) |> capture.output())
+  })
+})
+
+test_that("Install fail will re-throw", {
+  withr::with_tempdir({
+    local_mocked_bindings(
+      q = function(...) stop("mocked error")
+    )
+
+    fn <- pkg_manager(pkg_container("./nopkg.tag.gz", "nopkg"))
+    expect_error(fn("install_container", lib = getwd()) |> capture.output(), "mocked error")
+  })
+})

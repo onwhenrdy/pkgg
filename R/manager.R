@@ -1,8 +1,11 @@
-.load_pkgs <- function(pkgs, show_startup_msg, warnings, ...) {
+# To allow mocking of of quit
+q <- NULL
+
+.load_pkgs <- function(pkgs, show_startup_msg, show_warnings, ...) {
   refs <- purrr::keep(pkgs, \(x) x$load) |>
     purrr::map(\(x) x$package)
 
-  warn_fn <- if (warnings) function(x) {} else suppressWarnings
+  warn_fn <- if (show_warnings) function(x) {} else suppressWarnings
   msg_fn <- if (show_startup_msg) function(x) {} else suppressPackageStartupMessages
   msg_fn_2 <- if (show_startup_msg) function(x) {} else suppressMessages
 
@@ -14,7 +17,7 @@
   })
 }
 
-.install_pkgs <- function(pkgs, where, exit_on_error, ...) {
+.install_pkgs <- function(pkgs, where, exit_on_error, cleanup, ...) {
   inv_target <- if (where == "local") "container" else "local"
 
   refs <- purrr::keep(pkgs, \(x) x$install != inv_target) |>
@@ -31,7 +34,14 @@
     none = FALSE
   )
 
-  tryCatch(pak::pkg_install(refs, upgrade = TRUE, ...),
+  clean_pak <- switch(cleanup,
+    container = where == "container",
+    local = where == "local",
+    both = TRUE,
+    none = FALSE
+  )
+
+  tryCatch(pak::pkg_install(refs, ask = FALSE, ...),
     error = function(e) {
       if (exit_if_error) {
         q(status = 1)
@@ -40,6 +50,10 @@
       cli::cli_abort("Installing packages failed", parent = e)
     }
   )
+
+  if (clean_pak) {
+    pak::pak_cleanup(force = TRUE)
+  }
 
   return(invisible())
 }
@@ -66,14 +80,17 @@
   }) |> cat(sep = "\n")
 }
 
-# #' @export
+#' @export
 pkg_manager <- function(
     ...,
     .exit_on_error = c("container", "local", "both", "none"),
+    .cleanup = c("container", "local", "both", "none"),
     .startup_msg = FALSE,
     .warnings = FALSE) {
-  pkgs <- list(...)
+  checkmate::assert_flag(.startup_msg)
+  checkmate::assert_flag(.warnings)
 
+  pkgs <- list(...)
   for (pkg in pkgs) {
     checkmate::assert(
       checkmate::check_class(pkg, "pkg"),
@@ -81,9 +98,8 @@ pkg_manager <- function(
     )
   }
 
-
   .exit_on_error <- rlang::arg_match(.exit_on_error)
-
+  .cleanup <- rlang::arg_match(.cleanup)
 
   res <- function(action = c(
                     "list",
@@ -101,19 +117,20 @@ pkg_manager <- function(
     action <- rlang::arg_match(action)
 
     exit_on_error <- .exit_on_error
+    cleanup <- .cleanup
 
     if (show_list) {
       .show_list(startup_msg, warnings, exit_on_error)
       return(invisible())
     }
 
-    packages <- do.call(c, pkgs)
+    packages <- do.call(as_pkgs, pkgs)
     if (action == "load_pkgs") {
       .load_pkgs(packages, startup_msg, warnings, ...)
     } else if (action == "install_local") {
-      .install_pkgs(packages, "local", exit_on_error, ...)
+      .install_pkgs(packages, "local", exit_on_error, cleanup, ...)
     } else if (action == "install_container") {
-      .install_pkgs(packages, "container", exit_on_error, ...)
+      .install_pkgs(packages, "container", exit_on_error, cleanup, ...)
     } else {
       print(packages, table = TRUE)
     }

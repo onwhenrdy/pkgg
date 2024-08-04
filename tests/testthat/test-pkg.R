@@ -13,20 +13,12 @@ test_that("pkg can be set with version", {
 })
 
 test_that("pkg can be set with name", {
-  p <- pkg("url::http://dplyr.tar.gz", "dplyr")
+  p <- pkg("dplyr=url::http://dplyr.tar.gz")
   expect_equal(p$package, "dplyr")
 })
 
 test_that("pkg fails if name is needed", {
   expect_error(pkg("url::http://dplyr.tar.gz"))
-})
-
-test_that("pkg fails if name is invalid", {
-  expect_error(pkg("url::http://dplyr.tar.gz", "dplyr-"))
-})
-
-test_that("pkg warns if name can be inferred but is provided", {
-  expect_warning(pkg("dplyr", pkg_name = "dplyr"))
 })
 
 test_that("pkg fails if non-valid version was provided", {

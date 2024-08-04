@@ -1,0 +1,7 @@
+Package: testpkg1
+Title: Test package 1
+Version: 0.1.0
+Authors@R: 
+    person("Dominik", "Selzer", , "dominik.selzer@uni-saarland.de", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-4126-0816"))
+Description: This packages does nothing.

@@ -6,8 +6,6 @@
 
 <!-- badges: end -->
 
-GG for handling your R packages
-
 ## Example
 
 ```r
@@ -23,4 +21,8 @@ manager <- pkg_manager(
   ),
   pkg_local("ospsuite=Open-Systems-Pharmacology/OSPSuite-R")
 )
+
+manager("install_container")
+manager("install_local")
+manager("load_pkgs")
 ```

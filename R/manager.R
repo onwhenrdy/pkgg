@@ -80,7 +80,7 @@ q <- NULL
   }) |> cat(sep = "\n")
 }
 
-# #' @export
+#' @export
 pkg_manager <- function(
     ...,
     .exit_on_error = c("container", "local", "both", "none"),

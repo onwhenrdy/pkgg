@@ -6,7 +6,7 @@
 \alias{pkgg-package}
 \title{pkgg: Just a smol package handling package}
 \description{
-What the package does (one paragraph).
+TODO
 }
 \seealso{
 Useful links:

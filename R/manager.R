@@ -44,10 +44,14 @@ q <- NULL
   tryCatch(pak::pkg_install(refs, ask = FALSE, ...),
     error = function(e) {
       if (exit_if_error) {
+        cat("Error installing packages:\n")
+        print(e)
         q(status = 1)
       }
-
-      cli::cli_abort("Installing packages failed", parent = e)
+      cli::cli_abort("Installing packages failed",
+        parent = e,
+        call = rlang::caller_env(5)
+      )
     }
   )
 
